@@ -1,13 +1,31 @@
-use opentelemetry::{global, sdk::export::trace::stdout, trace::Tracer};
+use opentelemetry::{
+    sdk::runtime,
+    trace::Tracer,
+};
 
-fn main() {
-    // Create a new trace pipeline that prints to stdout
-    let tracer = stdout::new_pipeline().with_pretty_print(true).install_simple();
+use opentelemetry_otlp::{Protocol, WithExportConfig};
+use std::time::Duration;
 
-    tracer.in_span("doing_work", |cx| {
-        println!("Poig");
+fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+
+    let export_config = opentelemetry_otlp::ExportConfig {
+        endpoint: "http://localhost:4317".to_string(),
+        timeout: Duration::from_secs(3),
+        protocol: Protocol::Grpc
+    };
+
+    let otlp_exporter_build = opentelemetry_otlp::new_exporter()
+    .tonic()
+    .with_export_config(export_config);
+    
+    let otlp_tracer = opentelemetry_otlp::new_pipeline().
+    tracing().
+    with_exporter(otlp_exporter_build).
+    install_batch(runtime::AsyncStd).unwrap();
+
+    otlp_tracer.in_span("doing_work", |cx| {
+        println!("Poing");
     });
-
-    // Shutdown trace pipeline
-    global::shutdown_tracer_provider();
+    
+    Ok(())
 }
