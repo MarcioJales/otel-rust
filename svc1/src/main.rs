@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     };
 
     let otlp_exporter_build = opentelemetry_otlp::new_exporter()
-    .tonic()
+    .grpcio()
     .with_export_config(export_config);
     
     let otlp_tracer = opentelemetry_otlp::new_pipeline().
