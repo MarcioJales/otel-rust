@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 opentelemetry = { version = "0.19.0", features = ["rt-async-std"] }
-opentelemetry-otlp = { version = "0.12.0", features = ["http-proto"] }
+opentelemetry-otlp = { version = "0.12.0", features = ["grpc-sys"] }

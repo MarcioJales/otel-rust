@@ -15,13 +15,13 @@ use std::time::Duration;
 fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 
     let export_config = opentelemetry_otlp::ExportConfig {
-        endpoint: "http://localhost:4318".to_string(),
+        endpoint: "http://localhost:4317".to_string(),
         timeout: Duration::from_secs(3),
-        protocol: Protocol::HttpBinary
+        protocol: Protocol::Grpc
     };
 
     let otlp_exporter_build = opentelemetry_otlp::new_exporter()
-    .http()
+    .grpcio()
     .with_export_config(export_config);
     
     let otlp_tracer = opentelemetry_otlp::new_pipeline()
