@@ -12,7 +12,8 @@ use opentelemetry::{
 
 use opentelemetry_otlp::WithExportConfig;
 
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     let otlp_exporter_build = opentelemetry_otlp::new_exporter()
     .tonic()
     .with_env();
@@ -24,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         trace::config()
             .with_resource(Resource::default())
             .with_sampler(Sampler::AlwaysOn))
-    .install_batch(runtime::AsyncStd).unwrap();
+    .install_batch(runtime::Tokio).unwrap();
 
     otlp_tracer.in_span("doing_work", |cx| {
         println!("Poing");
