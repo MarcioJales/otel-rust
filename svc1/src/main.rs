@@ -1,4 +1,5 @@
 use opentelemetry::{
+    Context,
     sdk::{
         Resource,
         runtime,
@@ -7,7 +8,10 @@ use opentelemetry::{
             Sampler,
         }
     },
-    trace::Tracer,
+    trace::{
+        Tracer,
+        TraceContextExt
+    }
 };
 
 use opentelemetry_otlp::WithExportConfig;
@@ -26,10 +30,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
             .with_resource(Resource::default())
             .with_sampler(Sampler::AlwaysOn))
     .install_batch(runtime::Tokio).unwrap();
-
-    otlp_tracer.in_span("doing_work", |cx| {
-        println!("Poing");
-    });
+        
+    let parent = otlp_tracer.start("poing");
+    println!("{:?}", parent);
+    let parent_cx = Context::current_with_span(parent);
+    println!("{:?}", parent_cx);
+    println!("Poing");
     
     Ok(())
 }
