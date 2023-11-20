@@ -1,5 +1,5 @@
 use opentelemetry::{
-    Context,
+    global,
     sdk::trace::TracerProvider,
     trace::{
         TracerProvider as _,
@@ -12,7 +12,7 @@ use opentelemetry_otlp::{SpanExporter, ExportConfig, TonicConfig};
 
 use build_html::{self, Html, HtmlContainer};
 
-use std::net::TcpListener;
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -22,20 +22,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
     .with_simple_exporter(exporter)
     .build();
 
-    let tracer = provider.tracer("front");
-        
-    let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+    let _ = global::set_tracer_provider(provider);
 
-    for stream in listener.incoming() {
-        let stream = stream.unwrap();
+    HttpServer::new(|| {
+        App::new()
+            .service(front)
+    })
+    .bind(("127.0.0.1", 7979))?
+    .run()
+    .await?;
 
-        let parent = tracer.start("listener");
-        println!("Connection established!");
-    }
+    Ok(())
+}
+
+
+#[get("/")]
+async fn front() -> impl Responder {
+    let tracer = global::tracer("front");
+    let _ = tracer.start("main");
 
     let page = build_html::HtmlPage::new()
     .with_paragraph("Some Text")
     .to_html_string();
-    
-    Ok(())
+
+    HttpResponse::Ok().body(page)
 }
